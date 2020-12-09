@@ -12,6 +12,7 @@ import java.util.List;
 
 /**
  * Контроллирует действия на полях.
+ *
  */
 public class ActionController {
     private final Field[][] fields;
@@ -47,8 +48,8 @@ public class ActionController {
 
     /**
      * Class constructor.
-     *  fields        - игровые поля.
-     *  controller    - контроллер игры.
+     * @param fields        - игровые поля.
+     * @param controller    - контроллер игры.
      */
     public ActionController(Field[][] fields, GameBoardController controller) {
         this.fields = fields;
@@ -83,9 +84,14 @@ public class ActionController {
          */
         if (isAction && field != activeField && field.getChecker() != null) {
             if (field.getChecker().getColor() == turn()) {
+                boolean checkFucka = isFUKA(field);
                 setActive(field, true);
                 clearAllActiveField();
                 showPossibleField(field);
+
+                if (checkFucka && attackFields.size() <= 0) {
+                    setActive(null, false);
+                }
             }
             return;
         }
@@ -124,14 +130,38 @@ public class ActionController {
         Если действий небыло , сделать нажатое поле активным
          */
         if (!isAction) {
+            boolean checkFucka = isFUKA(field);
             setActive(field, true);
             showPossibleField(field);
+            if (checkFucka && attackFields.size() <= 0) {
+                setActive(null, false);
+            }
         }
+    }
+
+    private boolean isFUKA(Field field) {
+        int count = 0;
+        for (Field[] value : fields) {
+            for (Field item : value) {
+                if (item.getChecker() == null || field.getChecker() == null)
+                    continue;
+                if (field.getChecker().getColor() == item.getChecker().getColor()) {
+
+                    showPossibleField(item);
+                    if (attackFields.size() > 0) {
+                        clearAllActiveField();
+                        return true;
+                    }
+                }
+
+                clearAllActiveField();
+            }
+        }
+        return false;
     }
 
     /**
      * Выдача дамки для шашки.
-     *  field поле для проверки местоположения.
      */
     private void getDamCheck(Field field) {
         Checker checker = field.getChecker();
@@ -151,9 +181,10 @@ public class ActionController {
         field.setCheckerInfo();
     }
 
+
     /**
      * Проверка на атаку.
-     *  field - нажатое поле.
+
      */
     private void checkAttack(Field field) {
         for (AttackFieldInfo info :
@@ -171,8 +202,8 @@ public class ActionController {
 
     /**
      * Перемещение шашки.
-     *  field     - нажатое поле.
-     *  isAttack  - это действие атака или нет.
+     field     - нажатое поле.
+     isAttack  - это действие атака или нет.
      */
     private void goChecker(Field field, boolean isAttack) {
         field.setChecker(activeField.getChecker());
@@ -197,7 +228,7 @@ public class ActionController {
 
     /**
      * Показать варианты перестановки.
-     *  field - нажатое поле.
+     * @param field - нажатое поле.
      */
     private void showPossibleField(Field field) {
         Field frontRight= null;
@@ -239,7 +270,7 @@ public class ActionController {
 
     /**
      * Проверка возможных полей хода для дамки.
-     * @param field - нажатое поле.
+     field - нажатое поле.
      */
     private void checkPossibleFieldsForQueen(Field field, Checker.Color color){
         if (field == null) return;
@@ -267,7 +298,7 @@ public class ActionController {
 
     /**
      * Проверка возможного поля хода для шашки.
-     *  field - нажатое поле.
+     field - нажатое поле.
      */
     private void checkPossibleFieldForChecker(Field field, boolean back){
         if(field == null) return;
@@ -289,7 +320,7 @@ public class ActionController {
 
     /**
      * Поиск полей для атаки дамки.
-     *  field - нажатое поле.
+     field - нажатое поле.
      */
     private void findFieldsByAttack(final Field enemy, Field field, Checker.Color color) {
         if (field == null) return;
@@ -311,8 +342,8 @@ public class ActionController {
 
     /**
      * Поиск поля атаки дял шашки.
-     *  p - поинт с вектором поиска.
-     * возврат поле аттаки, если нету то null.
+     p - поинт с вектором поиска.
+     * @return поле аттаки, если нету то null.
      */
     private Field findAttackFieldByChecker(Point p) {
         return findAttackField(p, 0);
@@ -320,9 +351,9 @@ public class ActionController {
 
     /**
      * Рекурсия поиска
-     *  p - поинт с вектором поиска.
-     *  count - отсчет.
-     * возврат поле аттаки, если нету то null.
+     p - поинт с вектором поиска.
+     count - отсчет.
+     поле аттаки, если нету то null.
      */
     private Field findAttackField(Point p, int count){
         if (count >= 1) return null;
@@ -343,13 +374,13 @@ public class ActionController {
 
     /**
      * Установить/сбросить активное поле.
-     * f - поле.
-     *  b - активность. (да, нет)
+     f - поле.
+     b - активность. (да, нет)
      */
     private void setActive(Field f, boolean b) {
         this.activeField = f;
         isAction = b;
-        if(!b) clearAllActiveField();
+        clearAllActiveField();
     }
 
     /**
@@ -384,8 +415,8 @@ public class ActionController {
 
     /**
      * ПОиск противников вокруг поля
-     *  field - поле
-     * возвращаем результат если найдет хотя бы один враг
+     * field - поле
+     * @return результат если найдет хотя бы один враг
      */
     private boolean findEnemyAround(Field field) {
         Field c1 = getFieldByPoint(Point.pointDirection(field.getPoint(),
@@ -405,9 +436,9 @@ public class ActionController {
 
     /**
      * Сверка полей, являются ли шашки врагами
-     * f1 - первое поле
+     *  f1 - первое поле
      * f2 - второе поле
-     * возвращаем  враги или нет
+     * @return враги или нет
      */
     private boolean isEnemy(Field f1, Field f2){
         if (f1 == null || f2 == null) return false;
@@ -419,7 +450,7 @@ public class ActionController {
     /**
      * Получить поле по поинту
      *  p - координаты
-     *  поле.
+     * @return поле.
      */
     private Field getFieldByPoint(Point p) {
         int x = p.getX(), y = p.getY();
